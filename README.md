@@ -1,6 +1,8 @@
 # HideYerInfo
 
-**Private trackers sometimes forget to spoiler your sensitive keys like your API/RSS/IRC and that's lame**
+Private trackers sometimes forget to spoiler your sensitive keys like your API/RSS/IRC and that's lame. This userscript aims to <em>not</em> re-spoil or re-hide already active spoilers on private trackers. For example, <span style="display: inline-block; vertical-align: middle; height: 1em;"><img src="https://i.imgur.com/SbWV5Vs.png" alt="ANT" style="height: 1em;"/> </span> here already has a spoiler in place for your passkey on your profile shown <span style="display: inline-block; vertical-align: middle; height: 1em;"><img src="https://i.imgur.com/CpXvXpH.png" alt="here" style="height: 1em;"/> </span>
+
+The goal is that we won't have any issues™ with trackers that already have hidden information, but if you do, feel free to shoot me an issue [here](https://github.com/NoahBK/HideYerInfo/issues) and I will try and get it fixed with my spaghetti code.
 
 <details>
   <summary>Show sensitive information</summary>
