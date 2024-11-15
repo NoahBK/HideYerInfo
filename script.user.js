@@ -2,7 +2,7 @@
 // @name        HideYerInfo
 // @author      NoahBK (https://github.com/NoahBK)
 // @namespace   https://violentmonkey.github.io/get-it/
-// @version     1.5
+// @version     1.6
 // @homepage    https://github.com/NoahBK
 // @supportURL  https://github.com/NoahBK/HideYerInfo/issues
 // @downloadURL https://github.com/NoahBK/HideYerInfo/raw/main/script.user.js
@@ -47,10 +47,15 @@
 
     // Function to detect sensitive keys and protect them
     function protectSensitiveInfo() {
-        // Updated pattern: match alphanumeric strings (16-50 characters) that are not URLs
+        // Updated pattern: match alphanumeric strings (16-50 characters) that are not URLs or similar
         const keyPattern = /\b[a-z0-9]{16,50}\b/i;
         const sensitiveKeywords = ['passkey', 'api', 'pid', 'key'];
-        const excludedPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
+        const excludedPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;  // Exclude links
+
+        // Skip all content from Reddit domains
+        if (window.location.hostname.includes('reddit.com') || window.location.hostname.includes('old.reddit.com') || window.location.hostname.includes('new.reddit.com')) {
+            return;  // Exit early if on a Reddit domain
+        }
 
         const textNodes = document.evaluate("//text()[not(ancestor::span[contains(@class, 'spoiler')])]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
@@ -58,17 +63,18 @@
             const node = textNodes.snapshotItem(i);
             const textContent = node.nodeValue.trim();
 
-            // Skip URLs and short content
+            // Skip URLs, short content
             if (excludedPattern.test(textContent) || textContent.length < 16) {
                 continue;
             }
 
-            // Match passkeys with sensitive keywords
+            // Check for passkeys or API keys based on specific keywords
             const match = textContent.match(keyPattern);
             if (match && !node.parentElement.closest('.spoiler')) {
                 const passkey = match[0];
                 const containsSensitiveKeyword = sensitiveKeywords.some(keyword => textContent.toLowerCase().includes(keyword));
 
+                // If it's a valid passkey
                 if (containsSensitiveKeyword || keyPattern.test(passkey)) {
                     const [before, after] = textContent.split(passkey);
                     const beforeNode = document.createTextNode(before);
