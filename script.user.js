@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        HideYerInfo
-// @author      NoahBK (https://github.com/NoahBK)  // Combined author and URL on one line
+// @author      NoahBK (https://github.com/NoahBK)
 // @namespace   https://violentmonkey.github.io/get-it/
-// @version     1.0
+// @version     1.1
 // @homepage    https://github.com/NoahBK
 // @supportURL  https://github.com/NoahBK/HideYerInfo/issues
 // @downloadURL https://github.com/NoahBK/HideYerInfo/raw/main/script.user.js
@@ -48,36 +48,37 @@
 
         // Toggle visibility when the passkey itself is clicked
         content.addEventListener('click', function () {
-            content.style.display = 'none';  // Hide the passkey
+            content.style.display = 'none'; // Hide the passkey
             spoilerWrapper.style.display = 'inline'; // Show the "Show" button again
         });
     }
 
     // Function to detect sensitive keys and protect them
     function protectSensitiveInfo() {
-        const keyPattern = /\b[a-z0-9]{16,50}\b/i;  // Match passkeys/api keys with a more flexible length (16 to 50 characters)
-        const sensitiveKeywords = ['passkey', 'api', 'pid', 'key']; // List of sensitive keywords
-        const excludedKeywords = ['paypalavatarunfucker']; // List of excluded keywords to avoid false positives
+        const keyPattern = /\b[a-z0-9]{16,50}\b/i; // Match passkeys/api keys with length 16-50 characters
+        const sensitiveKeywords = ['passkey', 'api', 'pid', 'key'];
+        const excludedPatterns = /https?:\/\/|www\.|\.com|\.net|\.org|\.io|anonymz\.com/i;
+
         const textNodes = document.evaluate("//text()[not(ancestor::span[contains(@class, 'spoiler')])]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
         for (let i = 0; i < textNodes.snapshotLength; i++) {
             const node = textNodes.snapshotItem(i);
             const textContent = node.nodeValue;
 
-            // Ensure we don't match excluded keywords
-            if (excludedKeywords.some(keyword => textContent.toLowerCase().includes(keyword))) {
-                continue; // Skip any content containing excluded keywords
+            // Exclude URLs and any content containing excluded patterns
+            if (excludedPatterns.test(textContent) || excludedKeywords.some(keyword => textContent.toLowerCase().includes(keyword))) {
+                continue;
             }
 
-            // Match passkeys/api keys with length 16-50 characters
+            // Match passkeys/API keys with length 16-50 characters
             const match = textContent.match(keyPattern);
-            if (match && !node.parentElement.closest('.spoiler') && textContent.length >= 16 && textContent.length <= 50) {
+            if (match && !node.parentElement.closest('.spoiler')) {
+                const passkey = match[0];
+
                 // Check if the text content contains any of the sensitive keywords
                 const containsSensitiveKeyword = sensitiveKeywords.some(keyword => textContent.toLowerCase().includes(keyword));
 
-                // If the passkey is found and it's linked to a keyword or its own
-                if (containsSensitiveKeyword || textContent.match(keyPattern)) {
-                    const passkey = match[0];
+                if (containsSensitiveKeyword || keyPattern.test(passkey)) {
                     const [before, after] = textContent.split(passkey);
 
                     // Create new elements to wrap around the passkey
