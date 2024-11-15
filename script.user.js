@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        HideYerInfo
-// @author      NoahBK
+// @author      NoahBK (https://github.com/NoahBK)
 // @namespace   https://violentmonkey.github.io/get-it/
-// @version     1.3
+// @version     1.4
 // @homepage    https://github.com/NoahBK
 // @supportURL  https://github.com/NoahBK/HideYerInfo/issues
 // @downloadURL https://github.com/NoahBK/HideYerInfo/raw/main/script.user.js
@@ -28,7 +28,7 @@
 
         const content = document.createElement('span');
         content.textContent = passkey;
-        content.style.display = 'none'; // Hidden by default
+        content.style.display = 'none';
 
         parentNode.appendChild(spoilerWrapper);
         parentNode.appendChild(content);
@@ -47,21 +47,23 @@
 
     // Function to detect sensitive keys and protect them
     function protectSensitiveInfo() {
-        const keyPattern = /\b[a-z0-9]{16,50}\b/i;
+        // New refined pattern: targets passkeys, API keys, and excludes normal text
+        const keyPattern = /\b[a-f0-9]{16,50}\b/i; // Focus on longer hex-like sequences only
         const sensitiveKeywords = ['passkey', 'api', 'pid', 'key'];
-        const excludedPatterns = /(?:https?:\/\/|www\.|\.com|\.net|\.org|\.io|\/\?)/i;
-        const excludedElements = ['header', 'footer', '.nav', '.sidebar', '.menu', '.usertext-body'];
+        const excludedPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/i; // Exclude URLs
 
         const textNodes = document.evaluate("//text()[not(ancestor::span[contains(@class, 'spoiler')])]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
         for (let i = 0; i < textNodes.snapshotLength; i++) {
             const node = textNodes.snapshotItem(i);
-            const textContent = node.nodeValue;
+            const textContent = node.nodeValue.trim();
 
-            if (excludedPatterns.test(textContent) || excludedElements.some(selector => node.parentElement.closest(selector))) {
+            // Skip URLs and normal text
+            if (excludedPattern.test(textContent) || textContent.length < 16) {
                 continue;
             }
 
+            // Check for passkeys with sensitive keywords
             const match = textContent.match(keyPattern);
             if (match && !node.parentElement.closest('.spoiler')) {
                 const passkey = match[0];
@@ -69,7 +71,6 @@
 
                 if (containsSensitiveKeyword || keyPattern.test(passkey)) {
                     const [before, after] = textContent.split(passkey);
-
                     const beforeNode = document.createTextNode(before);
                     const afterNode = document.createTextNode(after);
                     const passkeyNode = document.createElement('span');
@@ -81,6 +82,7 @@
         }
     }
 
+    // Initial run and attach to future changes
     protectSensitiveInfo();
     document.addEventListener('DOMNodeInserted', protectSensitiveInfo);
 })();
