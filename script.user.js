@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        HideYerInfo
-// @author      NoahBK (https://github.com/NoahBK)
+// @author      NoahBK
 // @namespace   https://violentmonkey.github.io/get-it/
-// @version     1.2
+// @version     1.3
 // @homepage    https://github.com/NoahBK
 // @supportURL  https://github.com/NoahBK/HideYerInfo/issues
 // @downloadURL https://github.com/NoahBK/HideYerInfo/raw/main/script.user.js
@@ -30,34 +30,27 @@
         content.textContent = passkey;
         content.style.display = 'none'; // Hidden by default
 
-        // Insert the spoiler button and hidden content
         parentNode.appendChild(spoilerWrapper);
         parentNode.appendChild(content);
 
-        // Toggle visibility on click of the "Show" button
         spoilerWrapper.addEventListener('click', function () {
             const isHidden = content.style.display === 'none';
             content.style.display = isHidden ? 'inline' : 'none';
-
-            if (isHidden) {
-                spoilerWrapper.style.display = 'none'; // Hide the "Show" button when revealing the passkey
-            } else {
-                spoilerWrapper.style.display = 'inline'; // Show the "Show" button again when hiding the passkey
-            }
+            spoilerWrapper.style.display = isHidden ? 'none' : 'inline';
         });
 
-        // Toggle visibility when the passkey itself is clicked
         content.addEventListener('click', function () {
-            content.style.display = 'none'; // Hide the passkey
-            spoilerWrapper.style.display = 'inline'; // Show the "Show" button again
+            content.style.display = 'none';
+            spoilerWrapper.style.display = 'inline';
         });
     }
 
     // Function to detect sensitive keys and protect them
     function protectSensitiveInfo() {
-        const keyPattern = /\b[a-z0-9]{16,50}\b/i; // Match passkeys/api keys with length 16-50 characters
+        const keyPattern = /\b[a-z0-9]{16,50}\b/i;
         const sensitiveKeywords = ['passkey', 'api', 'pid', 'key'];
         const excludedPatterns = /(?:https?:\/\/|www\.|\.com|\.net|\.org|\.io|\/\?)/i;
+        const excludedElements = ['header', 'footer', '.nav', '.sidebar', '.menu', '.usertext-body'];
 
         const textNodes = document.evaluate("//text()[not(ancestor::span[contains(@class, 'spoiler')])]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
@@ -65,28 +58,22 @@
             const node = textNodes.snapshotItem(i);
             const textContent = node.nodeValue;
 
-            // Exclude actual URLs
-            if (excludedPatterns.test(textContent)) {
+            if (excludedPatterns.test(textContent) || excludedElements.some(selector => node.parentElement.closest(selector))) {
                 continue;
             }
 
-            // Match passkeys/API keys with length 16-50 characters
             const match = textContent.match(keyPattern);
             if (match && !node.parentElement.closest('.spoiler')) {
                 const passkey = match[0];
-
-                // Check if the text content contains any of the sensitive keywords
                 const containsSensitiveKeyword = sensitiveKeywords.some(keyword => textContent.toLowerCase().includes(keyword));
 
                 if (containsSensitiveKeyword || keyPattern.test(passkey)) {
                     const [before, after] = textContent.split(passkey);
 
-                    // Create new elements to wrap around the passkey
                     const beforeNode = document.createTextNode(before);
                     const afterNode = document.createTextNode(after);
                     const passkeyNode = document.createElement('span');
 
-                    // Attach the text nodes and the spoiler
                     node.replaceWith(beforeNode, passkeyNode, afterNode);
                     wrapInSpoiler(passkey, passkeyNode);
                 }
@@ -94,7 +81,6 @@
         }
     }
 
-    // Run on page load and on AJAX content load
     protectSensitiveInfo();
     document.addEventListener('DOMNodeInserted', protectSensitiveInfo);
 })();
