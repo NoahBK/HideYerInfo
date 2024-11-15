@@ -2,7 +2,7 @@
 // @name        HideYerInfo
 // @author      NoahBK (https://github.com/NoahBK)
 // @namespace   https://violentmonkey.github.io/get-it/
-// @version     1.7
+// @version     1.8
 // @homepage    https://github.com/NoahBK
 // @supportURL  https://github.com/NoahBK/HideYerInfo/issues
 // @downloadURL https://github.com/NoahBK/HideYerInfo/raw/main/script.user.js
@@ -47,15 +47,17 @@
 
     // Function to detect sensitive keys and protect them
     function protectSensitiveInfo() {
-        const keyPattern = /\b[a-z0-9]{16,50}\b/i;
+        // Updated pattern to match passkeys (long alphanumeric strings)
+        const keyPattern = /\b[a-zA-Z0-9]{16,50}\b/i;
         const sensitiveKeywords = ['passkey', 'api', 'pid', 'key'];
-        const excludedPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/i; // Exclude links
-        const bonusPattern = /\b(credits|bonus\s?points?)\b/i; // Exclusion for credits/bonus points
-        const usernamePattern = /^[a-zA-Z0-9_-]+$/; // Username pattern to skip simple usernames
+        const excludedPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;  // Exclude links
+
+        // Excluded common words and word-like patterns
+        const wordLikePatterns = ['horse', 'butt', 'stink', 'corect', 'example']; // Add more if necessary
 
         // Skip all content from Reddit domains
         if (window.location.hostname.includes('reddit.com') || window.location.hostname.includes('old.reddit.com') || window.location.hostname.includes('new.reddit.com')) {
-            return; // Exit early if on a Reddit domain
+            return;  // Exit early if on a Reddit domain
         }
 
         const textNodes = document.evaluate("//text()[not(ancestor::span[contains(@class, 'spoiler')])]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
@@ -64,9 +66,21 @@
             const node = textNodes.snapshotItem(i);
             const textContent = node.nodeValue.trim();
 
-            // Skip URLs, short content, usernames, and bonus points/credits
-            if (excludedPattern.test(textContent) || textContent.length < 16 || usernamePattern.test(textContent) || bonusPattern.test(textContent)) {
+            // Skip URLs, short content, and usernames
+            if (excludedPattern.test(textContent) || textContent.length < 16 || /^[a-zA-Z0-9]+$/.test(textContent)) {
                 continue;
+            }
+
+            // Exclude word-like patterns (this should ignore things like "CorectHorseBtryStple")
+            let isWordLike = false;
+            wordLikePatterns.forEach(word => {
+                if (textContent.toLowerCase().includes(word)) {
+                    isWordLike = true;
+                }
+            });
+
+            if (isWordLike) {
+                continue;  // Skip word-like strings
             }
 
             // Check for passkeys or API keys based on specific keywords
