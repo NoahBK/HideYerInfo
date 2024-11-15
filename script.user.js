@@ -2,7 +2,7 @@
 // @name        HideYerInfo
 // @author      NoahBK (https://github.com/NoahBK)
 // @namespace   https://violentmonkey.github.io/get-it/
-// @version     1.1
+// @version     1.2
 // @homepage    https://github.com/NoahBK
 // @supportURL  https://github.com/NoahBK/HideYerInfo/issues
 // @downloadURL https://github.com/NoahBK/HideYerInfo/raw/main/script.user.js
@@ -57,7 +57,7 @@
     function protectSensitiveInfo() {
         const keyPattern = /\b[a-z0-9]{16,50}\b/i; // Match passkeys/api keys with length 16-50 characters
         const sensitiveKeywords = ['passkey', 'api', 'pid', 'key'];
-        const excludedPatterns = /https?:\/\/|www\.|\.com|\.net|\.org|\.io|anonymz\.com/i;
+        const excludedPatterns = /(?:https?:\/\/|www\.|\.com|\.net|\.org|\.io|\/\?)/i;
 
         const textNodes = document.evaluate("//text()[not(ancestor::span[contains(@class, 'spoiler')])]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
@@ -65,8 +65,8 @@
             const node = textNodes.snapshotItem(i);
             const textContent = node.nodeValue;
 
-            // Exclude URLs and any content containing excluded patterns
-            if (excludedPatterns.test(textContent) || excludedKeywords.some(keyword => textContent.toLowerCase().includes(keyword))) {
+            // Exclude actual URLs
+            if (excludedPatterns.test(textContent)) {
                 continue;
             }
 
