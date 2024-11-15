@@ -19,7 +19,7 @@ As you can see above, I’ve inspect element'd my IRC key, RSS key, and Torrent 
 The above image is now showing a very cute, spoilered image. Good luck getting my secret codes now, random people of the internet who look at screenshots I forgot to spoiler keys on!
 
 # Downloads
-[**Click me!**](https://github.com/NoahBK/HideYerInfo/raw/main/script.user.js)
+[**Click me!**](https://github.com/NoahBK/HideYerInfo/raw/refs/heads/main/script.user.js)
 
 # Installation
 - First, download [Violentmonkey](https://violentmonkey.github.io/get-it/)
