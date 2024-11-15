@@ -2,7 +2,7 @@
 // @name        HideYerInfo
 // @author      NoahBK (https://github.com/NoahBK)
 // @namespace   https://violentmonkey.github.io/get-it/
-// @version     1.6
+// @version     1.7
 // @homepage    https://github.com/NoahBK
 // @supportURL  https://github.com/NoahBK/HideYerInfo/issues
 // @downloadURL https://github.com/NoahBK/HideYerInfo/raw/main/script.user.js
@@ -47,14 +47,15 @@
 
     // Function to detect sensitive keys and protect them
     function protectSensitiveInfo() {
-        // Updated pattern: match alphanumeric strings (16-50 characters) that are not URLs or similar
         const keyPattern = /\b[a-z0-9]{16,50}\b/i;
         const sensitiveKeywords = ['passkey', 'api', 'pid', 'key'];
-        const excludedPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;  // Exclude links
+        const excludedPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/i; // Exclude links
+        const bonusPattern = /\b(credits|bonus\s?points?)\b/i; // Exclusion for credits/bonus points
+        const usernamePattern = /^[a-zA-Z0-9_-]+$/; // Username pattern to skip simple usernames
 
         // Skip all content from Reddit domains
         if (window.location.hostname.includes('reddit.com') || window.location.hostname.includes('old.reddit.com') || window.location.hostname.includes('new.reddit.com')) {
-            return;  // Exit early if on a Reddit domain
+            return; // Exit early if on a Reddit domain
         }
 
         const textNodes = document.evaluate("//text()[not(ancestor::span[contains(@class, 'spoiler')])]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
@@ -63,8 +64,8 @@
             const node = textNodes.snapshotItem(i);
             const textContent = node.nodeValue.trim();
 
-            // Skip URLs, short content
-            if (excludedPattern.test(textContent) || textContent.length < 16) {
+            // Skip URLs, short content, usernames, and bonus points/credits
+            if (excludedPattern.test(textContent) || textContent.length < 16 || usernamePattern.test(textContent) || bonusPattern.test(textContent)) {
                 continue;
             }
 
