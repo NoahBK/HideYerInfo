@@ -2,7 +2,7 @@
 // @name        HideYerInfo
 // @author      NoahBK (https://github.com/NoahBK)
 // @namespace   https://violentmonkey.github.io/get-it/
-// @version     1.4
+// @version     1.5
 // @homepage    https://github.com/NoahBK
 // @supportURL  https://github.com/NoahBK/HideYerInfo/issues
 // @downloadURL https://github.com/NoahBK/HideYerInfo/raw/main/script.user.js
@@ -47,10 +47,10 @@
 
     // Function to detect sensitive keys and protect them
     function protectSensitiveInfo() {
-        // New refined pattern: targets passkeys, API keys, and excludes normal text
-        const keyPattern = /\b[a-f0-9]{16,50}\b/i; // Focus on longer hex-like sequences only
+        // Updated pattern: match alphanumeric strings (16-50 characters) that are not URLs
+        const keyPattern = /\b[a-z0-9]{16,50}\b/i;
         const sensitiveKeywords = ['passkey', 'api', 'pid', 'key'];
-        const excludedPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/i; // Exclude URLs
+        const excludedPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
 
         const textNodes = document.evaluate("//text()[not(ancestor::span[contains(@class, 'spoiler')])]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
@@ -58,12 +58,12 @@
             const node = textNodes.snapshotItem(i);
             const textContent = node.nodeValue.trim();
 
-            // Skip URLs and normal text
+            // Skip URLs and short content
             if (excludedPattern.test(textContent) || textContent.length < 16) {
                 continue;
             }
 
-            // Check for passkeys with sensitive keywords
+            // Match passkeys with sensitive keywords
             const match = textContent.match(keyPattern);
             if (match && !node.parentElement.closest('.spoiler')) {
                 const passkey = match[0];
@@ -82,7 +82,7 @@
         }
     }
 
-    // Initial run and attach to future changes
+    // Run on page load and on AJAX content load
     protectSensitiveInfo();
     document.addEventListener('DOMNodeInserted', protectSensitiveInfo);
 })();
