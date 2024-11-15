@@ -3,7 +3,7 @@
 **Private trackers sometimes forget to spoiler your sensitive keys like your API/RSS/IRC and that's lame**
 
 <details>
-  <summary><span style="color: #1E90FF; font-weight: bold; font-style: italic;">Show sensitive information</span></summary>
+  <summary>Show sensitive information</summary>
   <img src="https://i.imgur.com/yogKDrZ.png" alt="Unspoiled sensitive information!" />
 </details>
 
